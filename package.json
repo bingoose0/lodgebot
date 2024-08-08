@@ -1,0 +1,30 @@
+{
+  "name": "lodgebot",
+  "version": "1.0.0",
+  "description": "Lodge Bot",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "ts-node src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bingoose0/lodgebot.git"
+  },
+  "keywords": [
+    "discord"
+  ],
+  "author": "aindrigo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bingoose0/lodgebot/issues"
+  },
+  "homepage": "https://github.com/bingoose0/lodgebot#readme",
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.5.2",
+    "pino-pretty": "^11.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}

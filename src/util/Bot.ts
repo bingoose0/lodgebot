@@ -1,9 +1,10 @@
-import { Client, GatewayIntentBits, Interaction, REST, RESTPostAPIChatInputApplicationCommandsJSONBody, Routes, SlashCommandBuilder } from "discord.js";
+import { Channel, Client, GatewayIntentBits, Interaction, REST, RESTPostAPIChatInputApplicationCommandsJSONBody, Routes, SlashCommandBuilder } from "discord.js";
 import Logger from "./Logger";
 import ModuleManager from "./module/ModuleManager";
 import Config from "./Config";
 import * as fs from "fs";
 import mongoose from "mongoose";
+import { interactionOptionArrayToString } from "./Utils";
 
 export default class Bot {
     client: Client;
@@ -53,6 +54,13 @@ export default class Bot {
         return commands;
     }
 
+    private async sendLog(content: string) {
+        const logChannel = await this.findChannel(this.config.logChannel);
+        if(!logChannel || !logChannel.isTextBased()) return;
+
+        await logChannel.send(content);
+    }
+
     private async refreshCommands() {
         if(!this.client.application) {
             throw new TypeError("Client application not loaded");
@@ -82,11 +90,21 @@ export default class Bot {
     }
 
     private async onInteraction(interaction: Interaction) {
-        if(interaction.isChatInputCommand()) {
+        if (interaction.isChatInputCommand()) {
             this.moduleManager.modules.forEach(element => {
-                if(interaction.commandName != element.commandName) return;
+                if (interaction.commandName != element.commandName) return;
 
-                element.commandManager.processCommand(interaction);
+                element.commandManager.processCommand(interaction).catch(error => {
+                    if (interaction.deferred) {
+                        interaction.editReply(":x: **An error has occured executing this command! This error has been logged.**").then();
+                    } else {
+                        interaction.reply(":x: **An error has occured executing this command! This error has been logged.**").then();
+                    }
+
+                    const content = `Error executing command in module ${element.name}\nArguments:${interactionOptionArrayToString(interaction.options.data)}\nError:\`\`\`${error}\`\`\``;
+                    this.sendLog(content).then();
+                    this.logger.error(`${error}`);
+                });
             });
         }
     }
@@ -103,6 +121,17 @@ export default class Bot {
         mongoose.connect(uri);
     }
 
+    async findChannel(id: string): Promise<Channel | undefined> {
+        const channel = this.client.channels.cache.get(id);
+        if (!channel) {
+            const fetched = await this.client.channels.fetch(id);
+            if(!fetched) return;
+
+            return fetched;
+        }
+
+        return channel;
+    }
     async run(token: string) {
         this.rest.setToken(token);
         this.logger.info("Calling log-in function...")

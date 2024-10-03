@@ -3,4 +3,5 @@ export default interface Config {
     version: string;
     defaultBalance: number;
     currencyFormat: string;
+    logChannel: string;
 }

@@ -32,7 +32,7 @@ export default class Fund extends Command {
             account.balance -= toAdd;
             company.balance += toAdd;
         } else {
-            await interaction.editReply({ content: ":x: **You don't have enough money.** "});
+            await interaction.reply({ content: ":x: **You don't have enough money.** "});
             return;
         }
 

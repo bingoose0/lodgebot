@@ -9,7 +9,7 @@ export default class Register extends Command {
     async onExecute(interaction: ChatInputCommandInteraction<CacheType>) {
         const id = interaction.user.id;
         if(await Account.exists({ id: id })) {
-            await interaction.reply({ content: ":x: **You already have an account.**", ephemeral: true }); 
+            await interaction.reply({ content: ":x: **You already have an economy account.**", ephemeral: true }); 
             return;
         }
 

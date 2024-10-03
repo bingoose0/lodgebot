@@ -11,7 +11,7 @@ export default class Balance extends Command {
         const id = interaction.user.id;
         const account = await Account.findOne({ id: id }).exec();
         if(!account) {
-            await interaction.editReply({ content: ":x: **You do not have an account.**" }); 
+            await interaction.editReply({ content: ":x: **You do not have an economy account.**" }); 
             return;
         }
 

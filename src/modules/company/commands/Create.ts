@@ -1,7 +1,8 @@
-import { ChatInputCommandInteraction, CacheType, EmbedBuilder, SlashCommandSubcommandBuilder, SlashCommandStringOption } from "discord.js";
+import { ChatInputCommandInteraction, CacheType, SlashCommandSubcommandBuilder, SlashCommandStringOption, escapeMarkdown } from "discord.js";
 import Command from "../../../util/module/Command";
 import Account from "../../../schema/Account";
 import Company, { CompanyRole } from "../../../schema/Company";
+import { validateCompanyName } from "../../../util/Utils";
 
 export default class Create extends Command {
     name = "create";
@@ -13,26 +14,42 @@ export default class Create extends Command {
 
     async onExecute(interaction: ChatInputCommandInteraction<CacheType>) {
         await interaction.deferReply({ ephemeral: true });
-        
+
+        const name = interaction.options.getString("name", true);
+
         const id = interaction.user.id;
         const account = await Account.findOne({ id: id }).exec();
-        if(!account) {
-            await interaction.editReply({ content: ":x: **You do not have an account.**" }); 
+        if( !account) {
+            await interaction.editReply({ content: ":x: **You do not have an economy account.**" }); 
             return;
         }
 
         const company = await Company.findOne({ members: { $elemMatch: { accountId: account._id } } }).exec();
-        if(!company) {
-            await interaction.editReply({ content: ":x: **You're not in a company.**" }); 
+        if (company) {
+            await interaction.editReply({ content: ":x: **You're already in a company.**" }); 
             return;
         }
 
-        const balance = this.bot.currency(company.balance);
+        if (!validateCompanyName(name)) {
+            await interaction.editReply({ content: ":x: **Company name is invalid. (cannot have markdown)**"});
+            return;
+        }
 
-        const embedBuilder = new EmbedBuilder()
-            .setTitle(company.name)
-            .setDescription(`${company.name} currently has **${balance}**`);
+        const companyNew = new Company({
+            id: id,
+            balance: 0,
+            name: name,
+            ownerID: account._id,
+            members: [
+                {
+                    accountId: account._id,
+                    role: "owner"
+                }
+            ]
+        });
 
-        await interaction.editReply({ embeds: [embedBuilder] });
+        await companyNew.save();
+        
+        await interaction.editReply({ content: `:white_check_mark: **Successfully created *${escapeMarkdown(name)}*!**` });
     }   
 }

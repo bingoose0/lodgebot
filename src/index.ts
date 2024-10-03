@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits } from "discord.js";
+import { GatewayIntentBits } from "discord.js";
 import * as dotenv from "dotenv";
 import * as fs from 'fs';
 import Bot from "./util/Bot";

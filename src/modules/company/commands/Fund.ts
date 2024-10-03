@@ -17,7 +17,7 @@ export default class Fund extends Command {
         const id = interaction.user.id;
         const account = await Account.findOne({ id: id }).exec();
         if(!account) {
-            await interaction.editReply({ content: ":x: **You do not have an account.**" }); 
+            await interaction.editReply({ content: ":x: **You do not have an economy account.**" }); 
             return;
         }
 
@@ -28,13 +28,16 @@ export default class Fund extends Command {
         }
 
         const toAdd = interaction.options.getInteger("to_add", true);
-        if(account.balance < toAdd) {
+        if(account.balance >= toAdd) {
             account.balance -= toAdd;
             company.balance += toAdd;
+        } else {
+            await interaction.editReply({ content: ":x: **You don't have enough money.** "});
+            return;
         }
 
-        await account.updateOne({ balance: account.balance }).exec();
-        await company.updateOne({ balance: company.balance }).exec();
+        await account.save();
+        await company.save();
 
         await interaction.editReply({ content: `:white_check_mark: **You successfully funded your company with ${this.bot.currency(toAdd)}.**` });
     }   

@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, CacheType, EmbedBuilder } from "discord.js";
+import { ChatInputCommandInteraction, CacheType, EmbedBuilder, escapeMarkdown } from "discord.js";
 import Command from "../../../util/module/Command";
 import Account from "../../../schema/Account";
 import Company from "../../../schema/Company";
@@ -13,7 +13,7 @@ export default class Balance extends Command {
         const id = interaction.user.id;
         const account = await Account.findOne({ id: id }).exec();
         if(!account) {
-            await interaction.reply({ content: ":x: **You do not have an account.**" }); 
+            await interaction.editReply({ content: ":x: **You do not have an economy account.**" }); 
             return;
         }
 
@@ -23,11 +23,12 @@ export default class Balance extends Command {
             return;
         }
 
+        const name = escapeMarkdown(company.name);
         const balance = this.bot.currency(company.balance);
 
         const embedBuilder = new EmbedBuilder()
-            .setTitle(company.name)
-            .setDescription(`${company.name} currently has **${balance}**`);
+            .setTitle(name)
+            .setDescription(`${name} currently has **${balance}**`);
 
         await interaction.editReply({ embeds: [embedBuilder] });
     }   
